@@ -1,17 +1,19 @@
 <template>
-  <transition name="modal">
-    <div @click="handleCloseModal" class="modal__wrapper">
-      <div class="modal-content" @click.stop="">
-        <div class="modal-header">
-          <span class="modal-title">{{ title }}</span>
-          <span @click="handleCloseModal" class="button-close">&times;</span>
-        </div>
-        <div class="modal-body">
-          <slot></slot>
+  <teleport to="body">
+    <transition name="modal">
+      <div @click="handleCloseModal" class="modal__wrapper">
+        <div class="modal-content" @click.stop="">
+          <div class="modal-header">
+            <span class="modal-title">{{ title }}</span>
+            <span @click="handleCloseModal" class="button-close">&times;</span>
+          </div>
+          <div class="modal-body">
+            <slot></slot>
+          </div>
         </div>
       </div>
-    </div>
-  </transition>
+    </transition>
+  </teleport>
 </template>
 
 <script>
