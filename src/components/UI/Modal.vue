@@ -24,11 +24,11 @@ export default {
       default: 'Modal'
     }
   },
-  setup(props, { emit }) {
+  // emits: ['onClose'],
+  setup(_, { emit }) {
     const handleCloseModal = () => {
       emit('onClose')
     }
-
     return { handleCloseModal }
   }
 }

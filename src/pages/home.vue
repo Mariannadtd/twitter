@@ -3,21 +3,34 @@
     <Spinner/>
   </div>
   <div v-else>
-
-    <div class="tweets__wrapper" v-for="item in data" :key="item.id">
+    <div class="tweet-menu-wrapper">
+      <div class="tweet-menu">
+        <select v-model="sortBy" name="sortBy">
+          <option value="date">Sort by date</option>
+          <option value="likes">Sort by likes</option>
+        </select>
+      </div>
+    </div>
+    <div class="tweets__wrapper" v-for="item in dataSortered" :key="item.id">
       <Tweet
         :id="item.id"
         :likes="item.likes"
         :name="item.date"
         :imgUrl="item.avatar"
+        @onSubmit="handleLikeSubmit"
       >
         {{ item.body }}
       </Tweet>
     </div>
 
-    <button @click="handleModalShow" class="btn btnPrimary">Open modal</button>
-    <Modal v-if="showModal" @onClose="handleModalShow">
-      modal window
+    <button
+      @click="handleModalShow"
+      class="btn btnTweet btnTweetHome"
+    >
+      New tweet
+    </button>
+    <Modal title="New Tweet" v-if="showModal" @onClose="handleModalShow">
+      <TweetForm @onSubmit="handleTweetSubmit" />
     </Modal>
   </div>
 </template>
@@ -28,12 +41,13 @@ import { ref, computed } from 'vue'
 import Spinner from '@/components/UI/Spinner.vue'
 import Modal from '@/components/UI/Modal.vue'
 import Tweet from '@/components/UI/Tweet.vue'
+import TweetForm from '@/components/UI/TweetForm.vue'
 
 
 export default {
-  components: { Spinner, Modal, Tweet },
+  components: { Spinner, Modal, Tweet, TweetForm },
   setup() {
-    const data = [
+    const data = ref([
       {
         id: 1,
         body: 'Hi? friends',
@@ -55,21 +69,36 @@ export default {
         likes: 15,
         date: '10-05-2021',
       },
-    ]
+    ])
 
+    // отправка твита
+    const handleTweetSubmit = body => {
+      data.value.push({
+        id: data.value.length + 1,
+        body,
+        avatar:
+          'https://tocode.ru/static/_secret/bonuses/1/avatar-1Tq9kaAql.png',
+        likes: 0,
+        date: new Date(Date.now()).toLocaleString()
+      })
+      handleModalShow()
+    }
+
+    // эмит лайка
+    const handleLikeSubmit = id => console.log(`tweet id ${id} has been liked`)
     const sortBy = ref('date')
     const dataSortered = computed(() => {
-      return [...data].sort((a, b) => {
+      return [...data.value].sort((a, b) => {
         if (a[sortBy.value] < b[sortBy.value]) return 1
         if (a[sortBy.value] > b[sortBy.value]) return -1
       })
     })
 
 
-    const isLoading = ref(false)
-    // setTimeout(() => {
-    //   isLoading.value = false
-    // }, 3000)
+    const isLoading = ref(true)
+    setTimeout(() => {
+      isLoading.value = false
+    }, 1500)
 
     const showModal = ref(false)
     const handleModalShow = () => {
@@ -77,7 +106,16 @@ export default {
       showModal.value = nextShowModal
     }
 
-    return { data, dataSortered, isLoading, showModal, handleModalShow }
+    return {
+      data,
+      handleLikeSubmit,
+      handleTweetSubmit,
+      sortBy,
+      dataSortered,
+      isLoading,
+      showModal,
+      handleModalShow
+      }
   }
 }
 </script>
