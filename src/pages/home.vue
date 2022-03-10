@@ -30,22 +30,26 @@
       New tweet
     </button>
     <Modal title="New Tweet" v-if="showModal" @onClose="handleModalShow">
-      <TweetForm @onSubmit="handleTweetSubmit" />
+      <form @submit.prevent="handleStore">
+        <textarea name="body" id="body" v-model="tweet.body"></textarea>
+        <button type="submit" class="btn btnTweet">Submit</button>
+      </form>
     </Modal>
   </div>
 </template>
 
 <script>
-import { ref, computed } from 'vue'
+import { ref, reactive, computed } from 'vue'
+import http from '@/http-common'
 
 import Spinner from '@/components/UI/Spinner.vue'
 import Modal from '@/components/UI/Modal.vue'
 import Tweet from '@/components/UI/Tweet.vue'
-import TweetForm from '@/components/UI/TweetForm.vue'
+// import TweetForm from '@/components/UI/TweetForm.vue'
 
 
 export default {
-  components: { Spinner, Modal, Tweet, TweetForm },
+  components: { Spinner, Modal, Tweet },
   setup() {
     const data = ref([
       {
@@ -95,10 +99,25 @@ export default {
     })
 
 
-    const isLoading = ref(true)
-    setTimeout(() => {
-      isLoading.value = false
-    }, 1500)
+    const isLoading = ref(false)
+    // setTimeout(() => {
+    //   isLoading.value = false
+    // }, 1500)
+
+    const tweet = reactive ({
+      avatar: 'https://tocode.ru/static/_secret/bonuses/1/avatar-1Tq9kaAql.png',
+      likes: 0,
+      date: new Date(Date.now()).toLocaleString(),
+      body: ''
+    })
+
+    const handleStore = () => {
+      http.post ('/tweets.json', tweet)
+      console.log(tweet)
+
+      // reset
+      tweet.body = ''
+    }
 
     const showModal = ref(false)
     const handleModalShow = () => {
@@ -114,7 +133,9 @@ export default {
       dataSortered,
       isLoading,
       showModal,
-      handleModalShow
+      handleModalShow,
+      handleStore,
+      tweet
       }
   }
 }
