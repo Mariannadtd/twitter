@@ -39,7 +39,7 @@
 </template>
 
 <script>
-import { ref, reactive, computed } from 'vue'
+import { onMounted, ref, reactive, computed } from 'vue'
 import http from '@/http-common'
 
 import Spinner from '@/components/UI/Spinner.vue'
@@ -51,29 +51,29 @@ import Tweet from '@/components/UI/Tweet.vue'
 export default {
   components: { Spinner, Modal, Tweet },
   setup() {
-    const data = ref([
-      {
-        id: 1,
-        body: 'Hi? friends',
-        avatar: 'https://tocode.ru/static/_secret/bonuses/1/avatar-1Tq9kaAql.png',
-        likes: 10,
-        date: '01-11-2021',
-      },
-      {
-        id: 2,
-        body: 'Hi? friends',
-        avatar: 'https://tocode.ru/static/_secret/bonuses/1/avatar-1Tq9kaAql.png',
-        likes: 18,
-        date: '22-09-2021',
-      },
-      {
-        id: 3,
-        body: 'Hi? friends',
-        avatar: 'https://tocode.ru/static/_secret/bonuses/1/avatar-1Tq9kaAql.png',
-        likes: 15,
-        date: '10-05-2021',
-      },
-    ])
+    const isLoading = ref(true)
+    // setTimeout(() => {
+    //   isLoading.value = false
+    // }, 1500)
+    const data = ref([])
+
+    onMounted(() =>  getTweets())
+
+    const getTweets = () =>
+      http
+        .get('/tweets.json')
+        .then(res => {
+          const nextData = []
+          Object.keys(res.data).forEach(key => {
+            const item = res.data[key]
+            nextData.push({ id: key, ...item})
+          })
+
+          data.value = nextData
+          isLoading.value = false
+
+        })
+        .catch(e => console.log(e))
 
     // отправка твита
     const handleTweetSubmit = body => {
@@ -98,25 +98,23 @@ export default {
       })
     })
 
-
-    const isLoading = ref(false)
-    // setTimeout(() => {
-    //   isLoading.value = false
-    // }, 1500)
-
     const tweet = reactive ({
-      avatar: 'https://tocode.ru/static/_secret/bonuses/1/avatar-1Tq9kaAql.png',
+      avatar: `https://avatars.dicebear.com/api/male/${Date.now()}.svg?background=pink`,
       likes: 0,
       date: new Date(Date.now()).toLocaleString(),
       body: ''
     })
 
     const handleStore = () => {
-      http.post ('/tweets.json', tweet)
-      console.log(tweet)
-
-      // reset
-      tweet.body = ''
+      http
+        .post ('/tweets.json', tweet)
+        .then(() => {
+           // reset
+          tweet.body = ''
+          handleModalShow()
+          getTweets()
+        })
+        .catch(e => console.log(e))
     }
 
     const showModal = ref(false)
