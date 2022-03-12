@@ -17,16 +17,13 @@
         :likes="item.likes"
         :name="item.date"
         :imgUrl="item.avatar"
-        @onSubmit="handleLikeSubmit"
+        @onClick="handleUpdate(item)"
       >
-        {{ item.body }}
+        <div class="md-body" v-html="compiledMarked(item.body)"></div>
       </Tweet>
     </div>
 
-    <button
-      @click="handleModalShow"
-      class="btn btnTweet btnTweetHome"
-    >
+    <button @click="handleModalShow" class="btn btnTweet btnTweetHome">
       New tweet
     </button>
     <Modal title="New Tweet" v-if="showModal" @onClose="handleModalShow">
@@ -39,6 +36,8 @@
 </template>
 
 <script>
+import marked from 'marked'
+
 import { onMounted, ref, reactive, computed } from 'vue'
 import http from '@/http-common'
 
@@ -52,10 +51,11 @@ export default {
   components: { Spinner, Modal, Tweet },
   setup() {
     const isLoading = ref(true)
-    // setTimeout(() => {
-    //   isLoading.value = false
-    // }, 1500)
     const data = ref([])
+
+    const compiledMarked = text => {
+      return marked(text, { santize: true })
+    }
 
     onMounted(() =>  getTweets())
 
@@ -69,27 +69,14 @@ export default {
             nextData.push({ id: key, ...item})
           })
 
+          console.log(res.data)
+          console.log(nextData)
           data.value = nextData
           isLoading.value = false
-
         })
         .catch(e => console.log(e))
 
-    // отправка твита
-    const handleTweetSubmit = body => {
-      data.value.push({
-        id: data.value.length + 1,
-        body,
-        avatar:
-          'https://tocode.ru/static/_secret/bonuses/1/avatar-1Tq9kaAql.png',
-        likes: 0,
-        date: new Date(Date.now()).toLocaleString()
-      })
-      handleModalShow()
-    }
-
-    // эмит лайка
-    const handleLikeSubmit = id => console.log(`tweet id ${id} has been liked`)
+     // эмит лайка
     const sortBy = ref('date')
     const dataSortered = computed(() => {
       return [...data.value].sort((a, b) => {
@@ -97,6 +84,19 @@ export default {
         if (a[sortBy.value] > b[sortBy.value]) return -1
       })
     })
+
+    // отправка твита
+    // const handleTweetSubmit = body => {
+    //   data.value.push({
+    //     id: data.value.length + 1,
+    //     body,
+    //     avatar:
+    //       'https://tocode.ru/static/_secret/bonuses/1/avatar-1Tq9kaAql.png',
+    //     likes: 0,
+    //     date: new Date(Date.now()).toLocaleString()
+    //   })
+    //   handleModalShow()
+    // }
 
     const tweet = reactive ({
       avatar: `https://avatars.dicebear.com/api/male/${Date.now()}.svg?background=pink`,
@@ -107,7 +107,7 @@ export default {
 
     const handleStore = () => {
       http
-        .post ('/tweets.json', tweet)
+        .put ('/tweets/.json', tweet)
         .then(() => {
            // reset
           tweet.body = ''
@@ -123,12 +123,24 @@ export default {
       showModal.value = nextShowModal
     }
 
+
+    const handleUpdate = tweet => {
+      tweet.likes += 1
+
+      http
+        .post(`/tweets/${tweet.id}.json`, tweet)
+        .then(() => {})
+        .catch(e => console.log(e))
+    }
+
     return {
       data,
-      handleLikeSubmit,
-      handleTweetSubmit,
+      // handleLikeSubmit,
+      // handleTweetSubmit,
       sortBy,
+      handleUpdate,
       dataSortered,
+      compiledMarked,
       isLoading,
       showModal,
       handleModalShow,
