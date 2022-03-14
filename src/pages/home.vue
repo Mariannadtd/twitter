@@ -54,7 +54,7 @@ export default {
     const data = ref([])
 
     const compiledMarked = text => {
-      return marked(text, { santize: true })
+      return marked.parse(text, { sanitize: true })
     }
 
     onMounted(() =>  getTweets())
