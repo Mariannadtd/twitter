@@ -1,12 +1,13 @@
 <template>
   <div class="tweet">
     <div class="tweet-img__wrapper">
-      <img class="tweet-img" :src="imgUrl">
+      <img class="tweet-img" :src="imgUrl" />
     </div>
     <div class="tweet-body">
-      <span class="tweet-name">{{  name  }}</span>
+      <span class="tweet-name">{{ name }}</span>
       <slot></slot>
-      <p @click="handleLikeClick" class="tweet-likes-counter">
+
+      <p class="tweet-likes-counter" @click="handleLikeClick">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="14"
@@ -44,16 +45,10 @@ export default {
     },
     imgUrl: {
       type: String,
-      required: true
+      default: null
     }
   },
-  // emits: ['onSubmit'],
-  // setup(id, { emit }) {
-  //   const handleLikeClick = () => emit('onSubmit', id)
-
-  //   return { handleLikeClick }
-  // },
-  setup(__, { emit }) {
+  setup(_, { emit }) {
     const handleLikeClick = () => {
       emit('onClick')
     }
@@ -61,7 +56,6 @@ export default {
   }
 }
 </script>
-
 
 <style lang="scss">
 $border-radius-size: 14px;
