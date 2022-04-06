@@ -1,6 +1,6 @@
 <template>
   <div v-if="isLoading">
-    <Spinner/>
+    <Spinner />
   </div>
   <div v-else>
     <div class="tweet-menu-wrapper">
@@ -11,6 +11,7 @@
         </select>
       </div>
     </div>
+
     <div class="tweets__wrapper" v-for="item in dataSortered" :key="item.id">
       <Tweet
         :id="item.id"
@@ -36,28 +37,28 @@
 </template>
 
 <script>
-import marked from 'marked'
+/* eslint-disable */
+
+// import marked from 'marked'
 
 import { onMounted, ref, reactive, computed } from 'vue'
 import http from '@/http-common'
 
 import Spinner from '@/components/UI/Spinner.vue'
-import Modal from '@/components/UI/Modal.vue'
 import Tweet from '@/components/UI/Tweet.vue'
-// import TweetForm from '@/components/UI/TweetForm.vue'
-
+import Modal from '@/components/UI/Modal.vue'
 
 export default {
-  components: { Spinner, Modal, Tweet },
+  components: { Spinner, Tweet, Modal },
   setup() {
     const isLoading = ref(true)
     const data = ref([])
 
     const compiledMarked = text => {
-      return marked.parse(text || "",{ sanitize: true })
+      return text
     }
 
-    onMounted(() =>  getTweets())
+    onMounted(() => getTweets())
 
     const getTweets = () =>
       http
@@ -66,7 +67,7 @@ export default {
           const nextData = []
           Object.keys(res.data).forEach(key => {
             const item = res.data[key]
-            nextData.push({ id: key, ...item})
+            nextData.push({ id: key, ...item })
           })
 
           console.log(res.data)
@@ -76,40 +77,27 @@ export default {
         })
         .catch(e => console.log(e))
 
-     // эмит лайка
     const sortBy = ref('date')
     const dataSortered = computed(() => {
-      return [...data.value].sort((a, b) => {
+      return data.value.sort((a, b) => {
         if (a[sortBy.value] < b[sortBy.value]) return 1
         if (a[sortBy.value] > b[sortBy.value]) return -1
       })
     })
 
-    // отправка твита
-    // const handleTweetSubmit = body => {
-    //   data.value.push({
-    //     id: data.value.length + 1,
-    //     body,
-    //     avatar:
-    //       'https://tocode.ru/static/_secret/bonuses/1/avatar-1Tq9kaAql.png',
-    //     likes: 0,
-    //     date: new Date(Date.now()).toLocaleString()
-    //   })
-    //   handleModalShow()
-    // }
-
-    const tweet = reactive ({
-      avatar: `https://avatars.dicebear.com/api/male/${Date.now()}.svg?background=pink`,
+    const tweet = reactive({
+      // 'https://tocode.ru/static/_secret/bonuses/1/avatar-1Tq9kaAql.png',
+      avatar: `https://avatars.dicebear.com/api/male/${Date.now()}.svg`,
+      body: '',
       likes: 0,
-      date: new Date(Date.now()).toLocaleString(),
-      body: ''
+      date: new Date(Date.now()).toLocaleString()
     })
 
     const handleStore = () => {
       http
-        .put ('/tweets/.json', tweet)
+        .post('/tweets.json', tweet)
         .then(() => {
-           // reset
+          // reset
           tweet.body = ''
           handleModalShow()
           getTweets()
@@ -119,34 +107,31 @@ export default {
 
     const showModal = ref(false)
     const handleModalShow = () => {
-      const nextShowModal = showModal.value = !showModal.value
+      const nextShowModal = (showModal.value = !showModal.value)
       showModal.value = nextShowModal
     }
-
 
     const handleUpdate = tweet => {
       tweet.likes += 1
 
       http
-        .post(`/tweets/${tweet.id}.json`, tweet)
+        .put(`/tweets/${tweet.id}.json`, tweet)
         .then(() => {})
         .catch(e => console.log(e))
     }
 
     return {
       data,
-      // handleLikeSubmit,
-      // handleTweetSubmit,
       sortBy,
-      handleUpdate,
       dataSortered,
-      compiledMarked,
       isLoading,
-      showModal,
-      handleModalShow,
+      tweet,
       handleStore,
-      tweet
-      }
+      handleUpdate,
+      compiledMarked,
+      showModal,
+      handleModalShow
+    }
   }
 }
 </script>
